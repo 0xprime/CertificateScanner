@@ -36,15 +36,66 @@ function Get-Certificate
     $req = [Net.HttpWebRequest]::Create($url)
     $req.Timeout = $timeoutMilliseconds
     $req.AllowAutoRedirect = $false
+    
     try 
     {
         $req.GetResponse() |Out-Null
     } 
     catch {
-#            Write-Host Exception while checking URL $url`:$port $_ -f Red
+        #Write-Host Exception while checking URL $url`:$port $_ -f Red
     }
 
     return $req
+}
+
+function Parse-Certificate
+{
+    Param
+    (
+        [Net.HttpWebRequest]$request
+    )
+
+        try {
+            $certExpires = $request.ServicePoint.Certificate.GetExpirationDateString()
+            $certName = $request.ServicePoint.Certificate.GetName().Split()
+            $certPublicKeyString = $request.ServicePoint.Certificate.GetPublicKeyString()
+            $certSerialNumber = $request.ServicePoint.Certificate.GetSerialNumberString()
+            $certThumbprint = $request.ServicePoint.Certificate.GetCertHashString()
+            $certEffectiveDate = $request.ServicePoint.Certificate.GetEffectiveDateString()
+            $certIssuer = $request.ServicePoint.Certificate.GetIssuerName()
+        }
+        catch {
+            #Write-Host Exception while parsing cert $url`: $_ -f Red
+        }
+
+        if ($certName) 
+        {
+            try 
+            {
+                #Write-Host Getting hostname
+                $dnsname = [System.Net.Dns]::GetHostEntry($url).HostName       
+            }
+            catch
+            {
+                $dnsname = ""
+            }
+        }
+
+        if ($certName) 
+        {
+            $details =[ordered] @{            
+                Host = $url
+                Port = $port
+                Hostname = $dnsname       
+                CommonName = [system.String]::Join(" ", $certName -match "CN=") -replace ".*CN="
+                Issuer = $certIssuer
+                Creation = $certEffectiveDate
+                Expiration = $certExpires
+                Thumbprint = $certThumbprint
+                Serialnumber = $certSerialNumber
+            }
+            return $details
+        }
 }
 
 foreach ($url in $urls)
@@ -60,49 +111,18 @@ foreach ($url in $urls)
         
         $req = Get-Certificate -url $targetUrl -timeoutMilliseconds $timeoutMilliseconds
 
-        try {
-        $certExpires = $req.ServicePoint.Certificate.GetExpirationDateString()
-        $certName = $req.ServicePoint.Certificate.GetName().Split()
-        $certPublicKeyString = $req.ServicePoint.Certificate.GetPublicKeyString()
-        $certSerialNumber = $req.ServicePoint.Certificate.GetSerialNumberString()
-        $certThumbprint = $req.ServicePoint.Certificate.GetCertHashString()
-        $certEffectiveDate = $req.ServicePoint.Certificate.GetEffectiveDateString()
-        $certIssuer = $req.ServicePoint.Certificate.GetIssuerName()
-        }
-        catch {
-    #            Write-Host Exception while parsing cert $url`: $_ -f Red
-        }
-
-        if ($certName) 
+        $details = Parse-Certificate -req $req
+        
+        try
+        #if ($req.ServicePoint.Certificate.GetCertHashString())
         {
-            try 
-            {
-#            Write-Host Getting hostname
-                $dnsname = [System.Net.Dns]::GetHostEntry($url).HostName       
-            }
-            catch
-            {
-                $dnsname = "N/A"
-            }
-        }
-
-        if ($certName) 
-        {
-            $details =[ordered] @{            
-                Host = $url
-                Port = $port
-                Hostname = $dnsname       
-                CommonName = [system.String]::Join(" ", $certName -match "CN=")
-                Issuer = $certIssuer
-                Creation = $certEffectiveDate
-                Expiration = $certExpires
-                Thumbprint = $certThumbprint
-                Serialnumber = $certSerialNumber
-            }
             $results += New-Object PSObject -Property $details
             $details  
         }
-        
+        catch 
+        {
+            # We did not receive any data. 
+        }
     }
 }
 
