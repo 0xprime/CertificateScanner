@@ -48,7 +48,7 @@ function Get-Certificate
     return $req
 }
 
-function Parse-Certificate
+function Get-CertificateData
 {
     Param
     (
@@ -68,17 +68,25 @@ function Parse-Certificate
             #Write-Host Exception while parsing cert $url`: $_ -f Red
         }
 
-        if ($certName) 
+        try 
         {
-            try 
-            {
-                #Write-Host Getting hostname
-                $dnsname = [System.Net.Dns]::GetHostEntry($url).HostName       
+            #Write-Host Getting hostname
+            $dnsname = [System.Net.Dns]::GetHostEntry($url).HostName
+        }
+        catch
+        {
+            $dnsname = ""
+        }
+
+        $isExpired = $false
+        try {
+            [DateTime]$parsedExpiration = 
+            if ((Get-Date -Date $certExpires) -lt (Get-Date)) {
+                $isExpired = $true
             }
-            catch
-            {
-                $dnsname = ""
-            }
+        }
+        catch {
+            #Write-Host Exception while parsing checking if cert is expired for $url`: $_ -f Red               
         }
 
         if ($certName) 
@@ -93,6 +101,8 @@ function Parse-Certificate
                 Expiration = $certExpires
                 Thumbprint = $certThumbprint
                 Serialnumber = $certSerialNumber
+                IsExpired = $isExpired 
+                PublicKey = $certPublicKeyString
             }
             return $details
         }
@@ -111,7 +121,7 @@ foreach ($url in $urls)
         
         $req = Get-Certificate -url $targetUrl -timeoutMilliseconds $timeoutMilliseconds
 
-        $details = Parse-Certificate -req $req
+        $details = Get-CertificateData -req $req
         
         try
         #if ($req.ServicePoint.Certificate.GetCertHashString())
