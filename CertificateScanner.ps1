@@ -16,7 +16,7 @@ Inspired by https://stackoverflow.com/questions/39253055/powershell-script-to-ge
 .\CertificateScanner -servers 10.0.0.1,10.0.0.2 -ports 443,8443 -timeout 500
 
 .EXAMPLE
-.\CertificateScanner -serversfile .+servers.txt -ports 443,8443 -timeout 500
+.\CertificateScanner -serversfile .\servers.txt -ports 443,8443 -timeout 500
 
 #>
 
