@@ -10,26 +10,30 @@ Thanks to the Research Council of Norway for allowing me to Open Source this pro
 Inspired by https://stackoverflow.com/questions/39253055/powershell-script-to-get-certificate-expiry-for-a-website-remotely-for-multiple
 
 .EXAMPLE
-.\CertificateScanner -servers 10.0.0.1
+.\CertificateScanner.ps1 -targets 10.0.0.1
 
 .EXAMPLE
-.\CertificateScanner -servers 10.0.0.1,10.0.0.2 -ports 443,8443 -timeout 500
+.\CertificateScanner.ps1 -targets 10.0.0.1,10.0.0.2 -ports 443,8443 -timeout 500
 
 .EXAMPLE
-.\CertificateScanner -serversfile .\servers.txt -ports 443,8443 -timeout 500
+.\CertificateScanner.ps1 -targets .\servers.txt -ports 443,8443 -output certs.csv -timeout 500
 
 #>
 
-Param
+[CmdletBinding()]Param
 (
-    #Target servers, separated by comma.
-    [string[]]$servers,
-    #Target servers from file, one on each line. 
-    [string]$serversfile,
+    #Target servers, input is either separated by comma, or provided as a file.
+    [Parameter(Mandatory=$True)]
+    [string[]]$targets,
     #Target ports, separated by comma. Defaults to 443. 
+    [Parameter(Mandatory=$False)]
     [string[]]$ports = 443,
-    # Timeout in milliseconds. Defaults to 200.
-    $timeout = 200
+    #Timeout in milliseconds. Defaults to 200.
+    [Parameter(Mandatory=$False)]
+    [int]$timeout = 200,
+    #Outputfilename. Defaults to results.csv
+    [Parameter(Mandatory=$False)]
+    [string]$output = "results.csv"
 )
 
 $results = @()
@@ -54,7 +58,7 @@ function Get-Certificate
         $req.GetResponse() | Out-Null
     } 
     catch {
-        #Write-Host Exception while checking server $server`:$port $_ -f Red
+        #Write-Host Exception while retrieving cert from $server`:$port $_ -f Red
     }
 
     return $req
@@ -82,23 +86,24 @@ function Get-CertificateData
 
     try 
     {
-        #Write-Host Getting hostname
         $dnsname = [System.Net.Dns]::GetHostEntry($server).HostName
     }
     catch
     {
         $dnsname = ""
+        #Write-Host Setting Hostname to blank.
+        #Write-Host Exception while retrieving hostname from $server`: $_ -f Red
     }
 
     $isExpired = $false
+    $expirationDate = $certExpires.Split()
     try {
-        [DateTime]$parsedExpiration = 
-        if ((Get-Date -Date $certExpires) -lt (Get-Date)) {
+        if ((Get-Date $expirationDate[0].ToDateTime()) -lt (Get-Date)) {
             $isExpired = $true
         }
     }
     catch {
-        #Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
+        Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
     }
 
     if ($certName) 
@@ -113,26 +118,31 @@ function Get-CertificateData
             Expiration = $certExpires
             Thumbprint = $certThumbprint
             Serialnumber = $certSerialNumber
-            IsExpired = $isExpired 
+            #IsExpired = $isExpired 
             PublicKey = $certPublicKeyString
         }
         return $details
     }
 }
 
-if($serversfile) 
+# Check if the $targets parameter is a file
+if (Test-Path $targets[0])
 {
-    $servers = Get-Content $serversfile
+    $servers = Get-Content $targets
+}
+else
+{
+    $servers = $targets
 }
 
 foreach ($server in $servers)
 {
     foreach ($port in $ports)
     {
-        Write-Progress -Activity "Checking certificates" -status "Checking $server`:$port" -percentComplete ($servers.IndexOf($server) / $servers.count*100)
+        Write-Progress -Activity "Checking certificates" -status "Checking $server`:$port" -percentComplete ($servers.IndexOf($server) / ($servers.count)*100)
 
         # Make sure that we have cleared out all the variables
-        $details = $dnsname = $certExpires = $certName = $certPublicKeyString = $certSerialNumber = $certThumbprint = $certEffectiveDate = $certIssuer = $null
+        $details = $targetserver = $dnsname = $certExpires = $certName = $certPublicKeyString = $certSerialNumber = $certThumbprint = $certEffectiveDate = $certIssuer = $null
         
         $targetserver = "https://" + $server + ":" + $port
         
@@ -148,4 +158,4 @@ foreach ($server in $servers)
     }
 }
 
-$results | export-csv -Path ./results.csv -NoTypeInformation
+$results | Export-Csv -Path $output -NoTypeInformation
