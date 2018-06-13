@@ -124,7 +124,7 @@ function Get-CertificateData
             Thumbprint = $certThumbprint
             Serialnumber = $certSerialNumber
             IsExpired = $isExpired 
-            PublicKey = $certPublicKeyString
+            #PublicKey = $certPublicKeyString
         }
         return $details
     }
@@ -158,7 +158,7 @@ foreach ($server in $servers)
         if ($details)
         {
             $results += New-Object PSObject -Property $details
-            $details  
+            #$details  
         }
     }
 }
