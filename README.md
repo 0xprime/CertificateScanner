@@ -8,7 +8,7 @@ Thanks to the Research Council of Norway for allowing me to Open Source this pro
 - Clean up code.
 - Add support for ip range as targets.
 - Add notification on finished run.
-- Improve effiency. 
+- Improve efficiency. 
 
 ## Examples
 `.\CertificateScanner.ps1 -targets 10.0.0.1`
