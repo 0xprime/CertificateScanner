@@ -8,7 +8,7 @@ Version 1.0
 ## Todo
 - Clean up code.
 - Add support for ip range as targets.
-- Add support for target file containing <ip>:<port> pairs.
+- Add support for target file containing IP:PORT pairs.
 - Add notification on finished run.
 - Improve efficiency. 
 
