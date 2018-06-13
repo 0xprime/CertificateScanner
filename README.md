@@ -1,12 +1,14 @@
 # Certificate Scanner
-
 Connects to multiple hosts and parses the certificate, then writes the result to a .csv file.  
 
 Thanks to the Research Council of Norway for allowing me to Open Source this project and continue to work on it. 
 
+Version 1.0
+
 ## Todo
 - Clean up code.
 - Add support for ip range as targets.
+- Add support for target file containing <ip>:<port> pairs.
 - Add notification on finished run.
 - Improve efficiency. 
 

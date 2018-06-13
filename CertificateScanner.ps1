@@ -1,9 +1,11 @@
 ﻿<#
 .SYNOPSIS
+Certificate Scanner v1.0 
+
 Checks certificates on multiple hosts, outputs details to a csv. 
 
 .DESCRIPTION
-Connects to multiple hosts and parses the certificate. Writes the result to a .csv file.  
+Connects to multiple hosts and parses the certificate. Writes the result to a .csv file. 
 
 Thanks to the Research Council of Norway for allowing me to Open Source this project and continue to work on it. 
 
@@ -96,14 +98,17 @@ function Get-CertificateData
     }
 
     $isExpired = $false
-    $expirationDate = $certExpires.Split()
-    try {
-        if ((Get-Date $expirationDate[0].ToDateTime()) -lt (Get-Date)) {
+
+    try 
+    {
+        if ((Get-Date) -lt $certExpires) 
+        {
             $isExpired = $true
         }
     }
-    catch {
-        Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
+    catch 
+    {
+        # Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
     }
 
     if ($certName) 
@@ -118,7 +123,7 @@ function Get-CertificateData
             Expiration = $certExpires
             Thumbprint = $certThumbprint
             Serialnumber = $certSerialNumber
-            #IsExpired = $isExpired 
+            IsExpired = $isExpired 
             PublicKey = $certPublicKeyString
         }
         return $details
