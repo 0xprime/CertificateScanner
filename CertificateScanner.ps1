@@ -38,10 +38,13 @@ Inspired by https://stackoverflow.com/questions/39253055/powershell-script-to-ge
     [string]$output = "results.csv"
 )
 
+# A container for the certs
 $results = @()
 
+# Set some TLS connection settings
 [Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::ssl3 -bor [Net.SecurityProtocolType]::ssl2;
+
 
 function Get-Certificate
 {
@@ -55,12 +58,14 @@ function Get-Certificate
     $req.Timeout = $timeout
     $req.AllowAutoRedirect = $false
     
+    Write-Verbose "Checking Cert at $server."
+
     try 
     {
         $req.GetResponse() | Out-Null
     } 
     catch {
-        #Write-Host Exception while retrieving cert from $server`:$port $_ -f Red
+        Write-Verbose "Exception while retrieving cert from $server`:$port $_"
     }
 
     return $req
@@ -76,14 +81,14 @@ function Get-CertificateData
     try {
         $certExpires = $request.ServicePoint.Certificate.GetExpirationDateString()
         $certName = $request.ServicePoint.Certificate.GetName().Split()
-        $certPublicKeyString = $request.ServicePoint.Certificate.GetPublicKeyString()
+        #$certPublicKeyString = $request.ServicePoint.Certificate.GetPublicKeyString()
         $certSerialNumber = $request.ServicePoint.Certificate.GetSerialNumberString()
         $certThumbprint = $request.ServicePoint.Certificate.GetCertHashString()
         $certEffectiveDate = $request.ServicePoint.Certificate.GetEffectiveDateString()
         $certIssuer = $request.ServicePoint.Certificate.GetIssuerName()
     }
     catch {
-        #Write-Host Exception while parsing cert from $server`: $_ -f Red
+        Write-Verbose "Exception while parsing cert from $server`: $_"
     }
 
     try 
@@ -93,8 +98,8 @@ function Get-CertificateData
     catch
     {
         $dnsname = ""
-        #Write-Host Setting Hostname to blank.
-        #Write-Host Exception while retrieving hostname from $server`: $_ -f Red
+        Write-Verbose "Setting Hostname to blank."
+        Write-Verbose "Exception while retrieving hostname from $server`: $_"
     }
 
     $isExpired = $false
@@ -107,7 +112,7 @@ function Get-CertificateData
     }
     catch 
     {
-        # Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
+        Write-Verbose "Exception while parsing checking if cert is expired for $server`: $_"              
     }
 
     if ($certName) 
@@ -141,14 +146,13 @@ else
 
 foreach ($server in $servers)
 {
-    foreach ($port in $ports)
-    {
-        Write-Progress -Activity "Checking certificates" -status "Checking $server`:$port" -percentComplete ($servers.IndexOf($server) / ($servers.count)*100)
+    if($server -match ":") {
+        Write-Progress -Activity "Checking certificates" -status "Checking $server" -percentComplete ($servers.IndexOf($server) / ($servers.count)*100)
 
         # Make sure that we have cleared out all the variables
-        $details = $targetserver = $dnsname = $certExpires = $certName = $certPublicKeyString = $certSerialNumber = $certThumbprint = $certEffectiveDate = $certIssuer = $null
+        $details = $targetserver = $dnsname = $certExpires = $certName =  $certSerialNumber = $certThumbprint = $certEffectiveDate = $certIssuer = $null
         
-        $targetserver = "https://" + $server + ":" + $port
+        $targetserver = "https://" + $server
         
         $req = Get-Certificate -server $targetserver -timeout $timeout
 
@@ -158,6 +162,27 @@ foreach ($server in $servers)
         {
             $results += New-Object PSObject -Property $details
             #$details  
+        }
+    }
+    else {
+        foreach ($port in $ports)
+        {
+            Write-Progress -Activity "Checking certificates" -status "Checking $server`:$port" -percentComplete ($servers.IndexOf($server) / ($servers.count)*100)
+
+            # Make sure that we have cleared out all the variables
+            $details = $targetserver = $dnsname = $certExpires = $certName =  $certSerialNumber = $certThumbprint = $certEffectiveDate = $certIssuer = $null
+            
+            $targetserver = "https://" + $server + ":" + $port
+            
+            $req = Get-Certificate -server $targetserver -timeout $timeout
+
+            $details = Get-CertificateData -req $req
+            
+            if ($details)
+            {
+                $results += New-Object PSObject -Property $details
+                #$details  
+            }
         }
     }
 }
