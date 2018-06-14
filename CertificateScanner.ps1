@@ -110,8 +110,6 @@ function Get-CertificateData
         # Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
     }
 
-    Write-Host $isExpired
-
     if ($certName) 
     {
         $details =[ordered] @{            
