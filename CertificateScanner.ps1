@@ -98,10 +98,9 @@ function Get-CertificateData
     }
 
     $isExpired = $false
-
     try 
     {
-        if ((Get-Date) -lt $certExpires) 
+        if ([System.DateTime]::Parse($certExpires) -lt (Get-Date)) 
         {
             $isExpired = $true
         }
@@ -110,6 +109,8 @@ function Get-CertificateData
     {
         # Write-Host Exception while parsing checking if cert is expired for $server`: $_ -f Red               
     }
+
+    Write-Host $isExpired
 
     if ($certName) 
     {
