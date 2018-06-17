@@ -9,7 +9,8 @@ Version 1.0
 - Clean up code.
 - Add support for ip range as targets.
 - ~~Add support for target file containing IP:PORT pairs.~~ Done
-- Add notification on finished run.
+- ~~Add notification on finished run.~~ Done
+- Provide more details in notification. 
 - Improve efficiency. 
 
 ## Usage
