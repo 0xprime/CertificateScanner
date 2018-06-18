@@ -13,6 +13,10 @@ Version 1.0
 - Provide more details in notification. 
 - Improve efficiency. 
 
+## Use case
+
+Set a scheduled task to run the script every month, using the notification feature to to send an email to the person or group responsible for certificates in your organization after each run.
+
 ## Usage
 `.\CertificateScanner.ps1 -targets 10.0.0.1`
 
@@ -20,7 +24,7 @@ Version 1.0
 
 `.\CertificateScanner.ps1 -targets .\servers.txt -ports 443,8443 -output certs.csv -timeout 500`
 
-The "Targets" parameter can be either a file containing IPs and hostnames, or a list of IPs or hostnames separated by commas. The script will check each server and port pair in sequence, except where the target is a HOST:IP pair. In that case, only that combination will be checked.
+The "Targets" parameter can be either a file containing IPs and hostnames, or a list of IPs or hostnames separated by commas. The script will check each server and port pair in sequence, except where the target is a HOST:PORT pair. In that case, only that combination will be checked.
 
 ### Example
 `.\CertificateScanner.ps1 -targets 10.0.0.1,10.0.0.2,github.com:4444 -ports 443,8443`
