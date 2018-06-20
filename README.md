@@ -24,6 +24,8 @@ Set a scheduled task to run the script every month, using the notification featu
 
 `.\CertificateScanner.ps1 -targets .\servers.txt -ports 443,8443 -output certs.csv -timeout 500`
 
+`.\CertificateScanner.ps1 -targets .\servers.txt -ports 443,8443 -notify smtp -smtpFrom ripley@weyland.com -smtpTo bishop@weyland.com -smtpServer smtp.weyland.com`
+
 The "Targets" parameter can be either a file containing IPs and hostnames, or a list of IPs or hostnames separated by commas. The script will check each server and port pair in sequence, except where the target is a HOST:PORT pair. In that case, only that combination will be checked.
 
 ### Example

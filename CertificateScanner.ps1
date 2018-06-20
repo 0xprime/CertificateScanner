@@ -20,6 +20,9 @@ Inspired by https://stackoverflow.com/questions/39253055/powershell-script-to-ge
 .EXAMPLE
 .\CertificateScanner.ps1 -targets .\servers.txt -ports 443,8443 -output certs.csv -timeout 500
 
+.EXAMPLE
+.\CertificateScanner.ps1 -targets .\servers.txt -ports 443,8443 -notify smtp -smtpFrom ripley@weyland.com -smtpTo bishop@weyland.com -smtpServer smtp.weyland.com
+
 #>
 
 [CmdletBinding()]Param
@@ -202,4 +205,4 @@ switch ($notify){
         Write-Verbose "> Sending Email alert to $smtpTo from $smtpFrom through $smtpServer." 
         Send-Mailmessage -to $smtpTo -from $smtpFrom -subject $notifySubject -BodyAsHtml $notifyBody -smtpserver $smtpServer -Attachments $output
     }
-}   
+}
