@@ -181,7 +181,7 @@ $results | Export-Csv -Path $output -NoTypeInformation
 switch ($notify){
     smtp {
         if ((!$smtpFrom) -and (!$smtpTo) -and (!$smtpServer)) { Write-Warning "> Cannot send email, requires smtpTo, smtpFrom and smtpServer."; break}
-        $count = $results.Count()
+        $count = ($results  | measure).Count
         $notifySubject = "Certificate Scanner has finished."
         $notifyBody = "<p>Fisnished scan.</p><p>The scan has finished, it found $count certificates. See attached report."
         Write-Verbose "> Sending Email alert to $smtpTo from $smtpFrom through $smtpServer." 
