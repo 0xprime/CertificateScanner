@@ -49,7 +49,7 @@ $results = @()
 
 # Set some TLS connection settings
 [Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
-[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::ssl3 -bor [Net.SecurityProtocolType]::ssl2;
+[System.Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::ssl3;
 
 
 function Get-Certificate {
