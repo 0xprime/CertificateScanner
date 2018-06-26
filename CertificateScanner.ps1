@@ -51,6 +51,8 @@ $results = @()
 [Net.ServicePointManager]::ServerCertificateValidationCallback = {$true}
 [System.Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls -bor [System.Net.SecurityProtocolType]::Tls11 -bor [System.Net.SecurityProtocolType]::Tls12 -bor [Net.SecurityProtocolType]::ssl3;
 
+# Get start time.
+$startTime = Get-Date
 
 function Get-Certificate {
     Param (
@@ -176,6 +178,8 @@ foreach ($server in $servers) {
     }
 }
 
+$stopTime = Get-Date
+
 $results | Export-Csv -Path $output -NoTypeInformation
 
 switch ($notify){
@@ -183,7 +187,7 @@ switch ($notify){
         if ((!$smtpFrom) -and (!$smtpTo) -and (!$smtpServer)) { Write-Warning "> Cannot send email, requires smtpTo, smtpFrom and smtpServer."; break}
         $count = ($results  | measure).Count
         $notifySubject = "Certificate Scanner has finished."
-        $notifyBody = "<p>Fisnished scan.</p><p>The scan has finished, it found $count certificates. See attached report."
+        $notifyBody = "<p>Scan started: `t$startTime</p><p>Scan finished: `t$stopTime</p><p>The scan has finished, it found $count certificates. See attached report."
         Write-Verbose "> Sending Email alert to $smtpTo from $smtpFrom through $smtpServer." 
         Send-Mailmessage -to $smtpTo -from $smtpFrom -subject $notifySubject -BodyAsHtml $notifyBody -smtpserver $smtpServer -Attachments $output
     }
