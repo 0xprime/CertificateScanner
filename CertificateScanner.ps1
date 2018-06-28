@@ -72,7 +72,6 @@ function Get-Certificate {
     catch {
         Write-Verbose "Exception while retrieving cert from $server`:$port $_"
     }
-
     return $req
 }
 
@@ -82,13 +81,16 @@ function Get-CertificateData {
     )
 
     try {
+        $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]$req.ServicePoint.Certificate.Handle
         $certExpires = $request.ServicePoint.Certificate.GetExpirationDateString()
         $certName = $request.ServicePoint.Certificate.GetName().Split()
+        $certSubject = $request.ServicePoint.Certificate.GetName()
         #$certPublicKeyString = $request.ServicePoint.Certificate.GetPublicKeyString()
         $certSerialNumber = $request.ServicePoint.Certificate.GetSerialNumberString()
         $certThumbprint = $request.ServicePoint.Certificate.GetCertHashString()
         $certEffectiveDate = $request.ServicePoint.Certificate.GetEffectiveDateString()
         $certIssuer = $request.ServicePoint.Certificate.GetIssuerName()
+        $certAlternateName = ($certificate.Extensions | Where-Object {$_.Oid.Friendlyname -eq "Subject Alternative Name"}).Format(0)
     }
     catch {
         Write-Verbose "Exception while parsing cert from $server`: $_"
@@ -119,6 +121,8 @@ function Get-CertificateData {
             Port = $port
             Hostname = $dnsname       
             CommonName = [system.String]::Join(" ", $certName -match "CN=") -replace ".*CN="
+            Subject = $certSubject
+            SubjectAlternateName = $certAlternateName -replace "DNS Name="
             Issuer = $certIssuer
             Creation = $certEffectiveDate
             Expiration = $certExpires
@@ -185,7 +189,7 @@ $results | Export-Csv -Path $output -NoTypeInformation
 switch ($notify){
     smtp {
         if ((!$smtpFrom) -and (!$smtpTo) -and (!$smtpServer)) { Write-Warning "> Cannot send email, requires smtpTo, smtpFrom and smtpServer."; break}
-        $count = ($results  | measure).Count
+        $count = ($results  | Measure-Object).Count
         $notifySubject = "Certificate Scanner has finished."
         $notifyBody = "<p>Scan started: `t$startTime</p><p>Scan finished: `t$stopTime</p><p>The scan has finished, it found $count certificates. See attached report."
         Write-Verbose "> Sending Email alert to $smtpTo from $smtpFrom through $smtpServer." 
