@@ -3,7 +3,21 @@ Connects to multiple hosts and parses the certificate, then writes the result to
 
 Thanks to the Research Council of Norway for allowing me to Open Source this project and continue to work on it. 
 
-Version 1.0
+Version 2.0
+
+## The following information is retrieved
+- Host
+- Port
+- Hostname
+- Common Name
+- Subject
+- Subject Alternate Name
+- Issuer
+- Creation date
+- Expiration date 
+- Thumbprint
+- Serial Number
+- Is the certificate expired?
 
 ## Todo
 - Clean up code.
