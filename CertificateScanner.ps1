@@ -35,9 +35,9 @@ Inspired by https://stackoverflow.com/questions/39253055/powershell-script-to-ge
     #Timeout in milliseconds. Defaults to 200.
     [Parameter(Mandatory=$False)]
     [int]$timeout = 200,
-    #Outputfilename. Defaults to results.csv
+    #Outputfilename. Defaults to yyyyMMdd-results.csv
     [Parameter(Mandatory=$False)]
-    [string]$output = "results.csv",
+    [string]$output,
     [String]$notify,
     [String]$smtpFrom,
     [String]$smtpTo,
@@ -180,6 +180,11 @@ foreach ($server in $servers) {
             }
         }
     }
+}
+
+if(!$output) {
+    $reportdate = Get-Date -format yyyyMMdd
+    $output = "$reportdate-results.csv"
 }
 
 $stopTime = Get-Date
