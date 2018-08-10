@@ -35,12 +35,16 @@ Inspired by https://stackoverflow.com/questions/39253055/powershell-script-to-ge
     #Timeout in milliseconds. Defaults to 200.
     [Parameter(Mandatory=$False)]
     [int]$timeout = 200,
-    #Outputfilename. Defaults to yyyyMMdd-results.csv
+    #Output filename. Defaults to yyyyMMdd-results.csv
     [Parameter(Mandatory=$False)]
     [string]$output,
+    [Parameter(Mandatory=$False)]
     [String]$notify,
+    [Parameter(Mandatory=$False)]
     [String]$smtpFrom,
+    [Parameter(Mandatory=$False)]
     [String]$smtpTo,
+    [Parameter(Mandatory=$False)]
     [String]$smtpServer
 )
 
@@ -80,17 +84,19 @@ function Get-CertificateData {
         [Net.HttpWebRequest]$request
     )
 
+    $certificate = $certExpires = $certName = $certSubject = $certSerialNumber = $certThumbprint = $certEffectiveDate = $certIssuer = $certAlternateName = $null
+
     try {
         $certificate = [Security.Cryptography.X509Certificates.X509Certificate2]$req.ServicePoint.Certificate.Handle
         $certExpires = $request.ServicePoint.Certificate.GetExpirationDateString()
         $certName = $request.ServicePoint.Certificate.GetName().Split()
         $certSubject = $request.ServicePoint.Certificate.GetName()
-        #$certPublicKeyString = $request.ServicePoint.Certificate.GetPublicKeyString()
         $certSerialNumber = $request.ServicePoint.Certificate.GetSerialNumberString()
         $certThumbprint = $request.ServicePoint.Certificate.GetCertHashString()
         $certEffectiveDate = $request.ServicePoint.Certificate.GetEffectiveDateString()
         $certIssuer = $request.ServicePoint.Certificate.GetIssuerName()
         $certAlternateName = ($certificate.Extensions | Where-Object {$_.Oid.Friendlyname -eq "Subject Alternative Name"}).Format(0)
+        #$certPublicKeyString = $request.ServicePoint.Certificate.GetPublicKeyString()
     }
     catch {
         Write-Verbose "Exception while parsing cert from $server`: $_"
@@ -158,7 +164,6 @@ foreach ($server in $servers) {
         
         if ($details) {
             $results += New-Object PSObject -Property $details
-            #$details  
         }
     }
     else {
@@ -176,7 +181,6 @@ foreach ($server in $servers) {
             
             if ($details) {
                 $results += New-Object PSObject -Property $details
-                #$details  
             }
         }
     }
